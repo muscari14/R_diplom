@@ -83,9 +83,9 @@ for(i in seq(1:12)){
 month <- as.character(sber_un$Месяц[1:12])
 
 # Читаем, обрабатываем и записываем файлы:
-ls = list.files("C:/R/Skillbox/R_diplom/Рейтинг регионов по количеству заявок на кредит/")
+ls = list.files("Рейтинг регионов по количеству заявок на кредит/")
 for(i in seq(1, 12)){
-  dat <- read_xlsx(paste0("C:/R/Skillbox/R_diplom/Рейтинг регионов по количеству заявок на кредит/", ls[i]))
+  dat <- read_xlsx(paste0("Рейтинг регионов по количеству заявок на кредит/", ls[i]))
   dat <- domclck_prep(dat)
   dat$Месяц <- month[i]
   assign(paste("domclck", i, sep = "_"), dat)
@@ -141,9 +141,9 @@ for(i in seq(1:12)){
 month <- as.character(sber_un$Месяц[1:12])
 
 # Читаем, обрабатываем и записываем файлы:
-ls2 = list.files("C:/R/Skillbox/R_diplom/Рейтинг регионов по количеству ипотечных сделок/")
+ls2 = list.files("Рейтинг регионов по количеству ипотечных сделок/")
 for(i in seq(1, 12)){
-  dat <- read_xlsx(paste0("C:/R/Skillbox/R_diplom/Рейтинг регионов по количеству ипотечных сделок/", ls2[i]))
+  dat <- read_xlsx(paste0("Рейтинг регионов по количеству ипотечных сделок/", ls2[i]))
   dat <- domclck_hyp_prep(dat)
   dat$Месяц <- month[i]
   assign(paste("domclck_hyp", i, sep = "_"), dat)
@@ -169,7 +169,7 @@ domclck_both <- left_join(domclck_un, domclck_hyp_un)
 
 
 # Rosstat -----------------------------------------------------------------
-
+### Росстат - зарплата:
 rosstat_zp <- read_xlsx("Rosstat_Заработная плата.xlsx", sheet = "с 2019", skip = 2)
 rosstat_zp <-  rosstat_zp %>% 
   select(...1, январь...14 : декабрь...25)
@@ -183,3 +183,48 @@ rosstat_zp <- rosstat_zp %>%
                                `Месяц` %in% month[4:6] ~ "Квартал 2",
                                `Месяц` %in% month[7:9] ~ "Квартал 3",
                                `Месяц` %in% month[10:12] ~ "Квартал 4"), .after = `Месяц`)
+### Росстат - интернет:
+rosstat_net <- read_xlsx("Rosstat_Интернет.xlsx", sheet = "Беспроводная наземная", 
+                         skip = 2)
+
+# В этой таблице нет данных за 2020 г., поэтому выберу данные за 2019 г.
+rosstat_net <- rosstat_net[-c(1, 2), c(1, 25:28)]
+colnames(rosstat_net) <- c("Регион", "Квартал 1", "Квартал 2", "Квартал 3",
+                           "Квартал 4")
+rosstat_net <- pivot_longer(rosstat_net, cols = "Квартал 1" : "Квартал 4", names_to = "Число активных абонентов беспроводного доступа к сети")
+colnames(rosstat_net) <- c("Регион", "Квартал", "Число активных абонентов беспроводного доступа к сети")
+rosstat_net <- rosstat_net %>% 
+  filter(`Регион` != "Тюменская область")
+
+### Росстат - безработица:
+rosstat_chomage <- read_xls("Rosstat_Уровень безработицы населения.xls",
+                            sheet = 2,
+                            skip = 3)
+rosstat_chomage <- rosstat_chomage %>%
+  select(...1, `январь  - март 
+2020`, `апрель  - июнь
+ 2020`, `июль  - сентябрь
+ 2020`, `октябрь - декабрь
+ 2020`)
+colnames(rosstat_chomage) <- c("Регион", "Квартал 1", "Квартал 2", "Квартал 3",
+                               "Квартал 4")
+rosstat_chomage <- pivot_longer(rosstat_chomage, 
+                                cols = "Квартал 1" : "Квартал 4", names_to = "Уровень безработицы населения")
+rosstat_chomage <- rosstat_chomage[rosstat_chomage$Регион != "Российская Федерация", ]
+colnames(rosstat_chomage) <- c("Регион", "Квартал", "Уровень безработицы населения")
+### Приводим названия регионов к общему виду:
+names_sber_un <- unique(sber_un$Регион)
+names_domclck_un <- unique(domclck_both$Регион)
+names_rosstat_zp <- unique(rosstat_zp$Регион)
+names_rosstat_net <- unique(rosstat_net$Регион)
+names_rosstat_chomage <- unique(rosstat_chomage$Регион)
+
+setdiff(names_sber_un, names_domclck_un)
+setdiff(names_domclck_un, names_sber_un)
+
+domclck_both <- domclck_both %>% 
+  str_replace_all(domclck_both$Регион,
+                  c("Область" = "область",
+                    "Край" = "край"))
+            
+class(domclck_both$Регион)
