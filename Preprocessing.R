@@ -212,19 +212,28 @@ rosstat_chomage <- pivot_longer(rosstat_chomage,
                                 cols = "Квартал 1" : "Квартал 4", names_to = "Уровень безработицы населения")
 rosstat_chomage <- rosstat_chomage[rosstat_chomage$Регион != "Российская Федерация", ]
 colnames(rosstat_chomage) <- c("Регион", "Квартал", "Уровень безработицы населения")
-### Приводим названия регионов к общему виду:
-names_sber_un <- unique(sber_un$Регион)
-names_domclck_un <- unique(domclck_both$Регион)
-names_rosstat_zp <- unique(rosstat_zp$Регион)
-names_rosstat_net <- unique(rosstat_net$Регион)
-names_rosstat_chomage <- unique(rosstat_chomage$Регион)
 
-setdiff(names_sber_un, names_domclck_un)
-setdiff(names_domclck_un, names_sber_un)
+### Приводим названия регионов к общему виду,
+# за стандарт возьмем названия регионов по данным Сбербанка:
 
-domclck_both <- domclck_both %>% 
-  str_replace_all(domclck_both$Регион,
-                  c("Область" = "область",
-                    "Край" = "край"))
-            
-class(domclck_both$Регион)
+setdiff(sber_un$Регион, domclck_both$Регион)
+setdiff(domclck_both$Регион, sber_un$Регион)
+
+setdiff(sber_un$Регион, rosstat_zp$Регион)
+setdiff(rosstat_zp$Регион, sber_un$Регион)
+
+setdiff(domclck_both$Регион, rosstat_zp$Регион)
+setdiff(rosstat_zp$Регион, domclck_both$Регион)
+
+setdiff(rosstat_net$Регион, rosstat_zp$Регион)
+setdiff(rosstat_zp$Регион, rosstat_net$Регион)
+
+domclck_both$Регион <- str_replace_all(domclck_both$Регион,
+                                       c("Область" = "область",
+                                         "Край" = "край",
+                                         "Карачаево-Черкесская Республика" = "Республика Карачаево-Черкессия",
+                                         "Республика Адыгея" = "Адыгея",
+                                         "Республика Мордовия" = "Мордовия",
+                                         "Республика Северная Осетия - Алания" = "Республика Северная Осетия-Алания",
+                                         "Ханты-Мансийский Автономный округ - Югра" = "Ханты-Мансийский АО - Югра" ,
+                                         "Ямало-Ненецкий Автономный округ" = "Ямало-Ненецкий АО"))
