@@ -3,6 +3,7 @@
 # Загружаем библиотеки:
 library(tidyverse)
 library(readxl)
+library(writexl)
 
 # Sber --------------------------------------------------------------------
 
@@ -178,6 +179,8 @@ rosstat_zp <- rosstat_zp[-c(24, 69), ]
 rosstat_zp <- pivot_longer(rosstat_zp, cols = "Январь" : "Декабрь", names_to = "Месяц", values_to = "Среднемесячная заработная плата")
 rosstat_zp <- rosstat_zp %>% 
   filter(Регион != "Российская Федерация")
+rosstat_zp <- rosstat_zp %>% filter(rosstat_zp$Регион != c("Архангельская область",
+                                                                          "Тюменская область"))
 rosstat_zp <- rosstat_zp %>% 
   mutate(`Квартал` = case_when(`Месяц` %in% month[1:3] ~ "Квартал 1",
                                `Месяц` %in% month[4:6] ~ "Квартал 2",
@@ -212,7 +215,10 @@ rosstat_chomage <- pivot_longer(rosstat_chomage,
                                 cols = "Квартал 1" : "Квартал 4", names_to = "Уровень безработицы населения")
 rosstat_chomage <- rosstat_chomage[rosstat_chomage$Регион != "Российская Федерация", ]
 colnames(rosstat_chomage) <- c("Регион", "Квартал", "Уровень безработицы населения")
-
+rosstat_chomage <- rosstat_chomage %>% filter(rosstat_chomage$Регион != c("Тюменская область"))
+rosstat_chomage <- rosstat_chomage %>% 
+  filter(Регион != "Архангельская область")
+                                            
 ### Приводим названия регионов к общему виду,
 # за стандарт возьмем названия регионов по данным Сбербанка:
 
@@ -274,6 +280,9 @@ setdiff(x = rosstat_net$Регион, y = domclck_both$Регион)
 setdiff(x = rosstat_zp$Регион, y = rosstat_net$Регион)
 setdiff(x = rosstat_net$Регион, y = rosstat_zp$Регион)
 
+
+
+
 rosstat_net$Регион <- str_replace_all(rosstat_net$Регион, pattern = c("Центральный                федеральный округ" = "Центральный ФО",
                                                                       "г. Москва" = "Москва",
                                                                       "Северо-Западный                    федеральный округ" = "Северо-Западный ФО",
@@ -297,9 +306,54 @@ rosstat_net$Регион <- str_replace_all(rosstat_net$Регион, pattern = 
                                                                       "Еврейская автономная область" = "Еврейская АО",                                                                                     
                                                                       "Чукотский автономный округ" = "Чукотский АО")) 
 
+# rosstat chomage:
 
+setdiff(x = rosstat_zp$Регион, y = rosstat_chomage$Регион)
+setdiff(x = rosstat_chomage$Регион, rosstat_zp$Регион)
 
-                                                                    
+setdiff(x = rosstat_net$Регион, y = rosstat_chomage$Регион)
+setdiff(x = rosstat_chomage$Регион, y = rosstat_net$Регион)
+
+rosstat_chomage$Регион <- str_replace_all(string = rosstat_chomage$Регион, 
+                                          pattern = c("федеральный округ" = "ФО",
+                                                      "в том числе: \nНенецкий автономный округ" = "Ненецкий АО",
+                                                      "Архангельская область без авт. округа" = "Архангельская область",
+                                                      "г. Москва" = "Москва",
+                                                      "г. Санкт-Петербург" = "Санкт-Петербург",
+                                                      "г.Санкт-Петербург" = "Санкт-Петербург",
+                                                      "Республика Адыгея" = "Адыгея",
+                                                      "г. Севастополь" = "Севастополь",
+                                                      "Карачаево-Черкесская Республика" = "Республика Карачаево-Черкессия",
+                                                      "Республика Северная Осетия - Алания" = "Республика Северная Осетия-Алания",
+                                                      "Республика Мордовия" = "Мордовия",
+                                                      "в том числе: \nХанты-Мансийский автономный округ - Югра" = "Ханты-Мансийский АО - Югра",
+                                                      "Ямало-Ненецкий автономный округ" = "Ямало-Ненецкий АО",
+                                                      "Тюменская область без авт. округов" = "Тюменская область",
+                                                      "Еврейская автономная область" = "Еврейская АО",
+                                                      "Чукотский автономный округ" = "Чукотский АО"))
+                                                      
+                                                      
+rosstat_un <- full_join(x = rosstat_zp, y = rosstat_net,
+                         by = c("Регион", "Квартал"))
+
+rosstat_un <- full_join(x = rosstat_un, y = rosstat_chomage,
+                        by = c("Регион", "Квартал"))
+
+# В датасете про беспроводной интернет отсутствуют данные по Ненецкому округу,
+# к сожалению, придется исключить его из итогового датафрейма,
+# чтобы избежать пропущенных значений
+
+rosstat_un <- rosstat_un %>% 
+  filter(Регион != "Ненецкий АО")
+
+anyNA(rosstat_un)
+
+## Объединение в итоговый датафрейм
+
+dat_fin <- full_join(x = sber_un, y = domclck_both)
+dat_fin <- full_join(x = dat_fin, y = rosstat_un)
+
+write_xlsx(dat_fin, "Итоговая таблица.xlsx")                                                                  
                                                                     
 
 
