@@ -350,10 +350,19 @@ anyNA(rosstat_un)
 
 ## Объединение в итоговый датафрейм
 
-dat_fin <- full_join(x = sber_un, y = domclck_both)
-dat_fin <- full_join(x = dat_fin, y = rosstat_un)
+dat <- full_join(x = sber_un, y = domclck_both)
+dat <- full_join(x = dat, y = rosstat_un)
 
-write_xlsx(dat_fin, "Итоговая таблица.xlsx")                                                                  
+# Дополнительные преобразования:
+
+dat <- dat %>% 
+  select(!Год)
+
+dat$Квартал <- as.factor(dat$Квартал)
+
+dat <- dat %>% relocate(Квартал, .after = Месяц)
+
+write_xlsx(dat, "Итоговая таблица.xlsx")                                                                  
                                                                     
 
 
