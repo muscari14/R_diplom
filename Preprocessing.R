@@ -362,7 +362,8 @@ dat$Квартал <- as.factor(dat$Квартал)
 
 dat <- dat %>% relocate(Квартал, .after = Месяц)
 
-write_xlsx(dat, "Итоговая таблица.xlsx")                                                                  
+write_xlsx(dat, "Итоговая таблица.xlsx")
+write.csv(dat, "Dat.csv")
                                                                     
 
 
