@@ -74,17 +74,56 @@ server <- function(input, output){
           dat_f <- dat %>% 
             filter(Регион == input$region)
           dat_f %>% 
-            ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
-            geom_bar()
+            count(!!sym(input$value)) %>% 
+            mutate(prop = n/sum(n)) %>% 
+            ggplot(aes(x = !!sym(input$value), y = prop, fill = !!sym(input$value))) +
+            geom_col(color = "grey20") +
+            geom_text(aes(label = percent(prop), vjust = -1)) +
+            scale_y_continuous(labels = percent_format()) +
+            theme_minimal() +
+            theme(axis.title = element_blank()) +
+            scale_fill_manual(values = c("lightpink", "steelblue", "palegreen3", "coral", "wheat"))
+        }
+        else{
+          dat %>% 
+            count(!!sym(input$value)) %>% 
+            mutate(prop = n/sum(n)) %>% 
+            ggplot(aes(x = !!sym(input$value), y = prop, fill = !!sym(input$value))) +
+            geom_col(color = "grey20") +
+            geom_text(aes(label = percent(prop), vjust = -1)) +
+            scale_y_continuous(labels = percent_format()) +
+            theme_minimal() +
+            theme(axis.title = element_blank()) +
+            scale_fill_manual(values = c("lightpink", "steelblue", "palegreen3", "coral", "wheat")) 
+        }
+      }
+      else{
+        if(input$region != "Россия"){
+          dat_f <- dat %>% 
+            filter(Регион == input$region)
+          dat_f %>% 
+            ggplot(aes(y = !!sym(input$value))) +
+            geom_boxplot(fill = input$plot_col) +
+            labs(x = input$region) +
+            scale_x_continuous(breaks = NULL) +
+            theme_minimal()
+        }
+        else{
+          dat %>% 
+            ggplot(aes(y = !!sym(input$value))) +
+            geom_boxplot(fill = input$plot_col) +
+            labs(x = input$region) +
+            scale_x_continuous(breaks = NULL) +
+            theme_minimal()
         }
       }
     }
-  })}
-    
-    
+  }
+  )
+}
 
 
-
+ 
 
     
 
