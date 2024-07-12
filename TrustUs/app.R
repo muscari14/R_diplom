@@ -10,9 +10,10 @@
 library(shiny)
 library(tidyverse)
 
-dat <- drop_na(read.csv("forshiny.csv"))
+dat <- drop_na(read.csv("forshiny.csv", check.names = FALSE))
+dat <- dat[-1]
 
-
+#Препроцессинг:
 # dat$`Число активных абонентов беспроводного доступа к сети` <- as.numeric(dat$`Число активных абонентов беспроводного доступа к сети`)
 dat$Месяц <- factor(dat$Месяц, ordered = TRUE,
                     levels = c("Январь", "Февраль", "Март", 
@@ -22,23 +23,23 @@ dat$Месяц <- factor(dat$Месяц, ordered = TRUE,
 dat$Квартал <- factor(dat$Квартал,
                       levels = c("Квартал 1", "Квартал 2", "Квартал 3", "Квартал 4"))
 
-dat$Всего.одобренных.заявок <- factor(dat$Всего.одобренных.заявок,
+dat$`Всего одобренных заявок` <- factor(dat$`Всего одобренных заявок`,
                                       levels = c("100 - 500",
                                                  "500 - 1 000",
                                                  "1 000 - 5 000",
                                                  "5 000 - 10 000",
-                                                 "> 10 000"), ordered = TRUE,
-                                      labels = paste("111", levels(dat$Всего.одобренных.заявок)))
+                                                 "> 10 000"), ordered = TRUE)
+                                        
 
 
-dat$Всего.ипотечных.сделок <- factor(dat$Всего.ипотечных.сделок,
+dat$`Всего ипотечных сделок` <- factor(dat$`Всего ипотечных сделок`,
                                      levels = c("10 - 50",
                                                 "50 - 100",
                                                 "100 - 500",
                                                 "500 - 1 000",
                                                 "> 1 000"), ordered = TRUE)
 
-
+#Пользовательский интерфейс:
 ui <- fluidPage(
   titlePanel("Социоэкономические показатели регионов России"),
   sidebarLayout(
@@ -48,7 +49,7 @@ ui <- fluidPage(
                   choices = c("Россия", as.character(sort(unique(dat$Регион))))),
       selectInput("value",
                   "Показатель:",
-                  choices = sort(colnames(dat)[5:length(colnames(dat))])),
+                  choices = sort(colnames(dat)[5 : length(colnames(dat))])),
     radioButtons("mode",
                  "Режим:",
                  choices = c("Распределение" = "distribution",
@@ -61,20 +62,107 @@ ui <- fluidPage(
 )
 
 
+#Обработка и вывод:
+#В датафрейме имеется два факторных показателя: `Всего одобренных заявок` и `Всего ипотечных сделок`.
+#Для них построим отдельные графики: барплот для режима `Распределение` и барплот с разбивкой по месяцам
+#для режима `Динамика`
 server <- function(input, output){
   output$Plot <- renderPlot({
     if(input$mode == "distribution"){
-      if(input$region != "Россия"){
-        dat_f <- dat %>% 
-          filter(Регион == input$region)
-        dat_f %>% 
-        ggplot(aes(y = !!sym(input$value))) +
-        geom_boxplot() +
-        scale_x_continuous(breaks = NULL)+
-        theme_minimal()
-}}})}
+      if(input$value == "Всего одобренных заявок" | input$value == "Всего ипотечных сделок"){
+        if(input$region != "Россия"){
+          dat_f <- dat %>% 
+            filter(Регион == input$region)
+          dat_f %>% 
+            ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
+            geom_bar()
+        }
+      }
+    }
+  })}
+    
+    
+
+
+
+
+    
 
 
 
 shinyApp(ui = ui, server = server)
 
+    
+    # if(input$value == "Всего одобренных заявок" | input$value == "Всего ипотечных сделок"){
+    #   if(input$mode == "distribution"){
+    #     if(input$region != "Россия"){
+    #     dat_f <- dat %>% 
+    #       filter(Регион == input$region)
+    #     dat_f %>% 
+    #       ggplot(aex(x = !!sym(input$value), fill = !!sym(input$value))) +
+    #       geom_bar()
+    #   }
+    #   else{
+    #     dat %>% 
+    #       ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
+    #       geom_bar()
+    #   }
+    #     if(input$mode == "dynamic"){
+    #       if(input$region != "Россия"){
+    #         dat_f <- dat %>% 
+    #           filter(Регион == input$region)
+    #         dat_f %>% 
+    #           ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
+    #           geom_bar() +
+    #           facet_wrap(~ `Месяц`)
+    #       }
+    #       else{
+    #         dat %>% 
+    #           ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
+    #           geom_bar() +
+    #           facet_wrap(~ `Месяц`)
+    #       }
+    #     }
+    #   }
+    # }
+    # else{
+    #   if(input$mode == "distribution"){
+    #     if(input$region != "Россия"){
+    #     dat_f <- dat %>% 
+    #       filter(Регион == input$region)
+    #     dat_f %>% 
+    #     ggplot(aes(y = !!sym(input$value))) +
+    #     geom_boxplot(fill = input$plot_col) +
+    #     labs(x = input$region) +
+    #     scale_x_continuous(breaks = NULL)+
+    #     theme_minimal()
+    #   }
+    #   else{
+    #     dat %>% 
+    #       ggplot(aes(y = !!sym(input$value))) +
+    #       geom_boxplot(fill = input$plot_col) +
+    #       labs(x = input$region) +
+    #       scale_x_continuous(breaks = NULL) +
+    #       theme_minimal()
+    #   }
+    # }
+    # else{
+    #   if(input$region != "Россия"){
+    #     dat_f <- dat %>% 
+    #       filter(Регион == input$region)
+    #     dat_f %>% 
+    #       ggplot(aes(x =`Месяц`, y = !!sym(input$value), group = 1)) +
+    #       geom_point() +
+    #       geom_line(color = input$plot_col) +
+    #       theme_minimal()
+    #   }
+    #   else{
+    #     dat %>% 
+    #       group_by(Месяц) %>% 
+    #       summarise(mean = mean(!!sym(input$value))) %>% 
+    #       ggplot(aes(x = `Месяц`, y = mean, group = 1)) +
+    #       geom_point() +
+    #       geom_line(color = input$plot_col) +
+    #       theme_minimal()
+    #   }
+    # }}})}  
