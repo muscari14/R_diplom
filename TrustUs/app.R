@@ -9,6 +9,7 @@
 
 library(shiny)
 library(tidyverse)
+library(scales)
 
 dat <- drop_na(read.csv("forshiny.csv", check.names = FALSE))
 dat <- dat[-1]
@@ -115,6 +116,26 @@ server <- function(input, output){
             labs(x = input$region) +
             scale_x_continuous(breaks = NULL) +
             theme_minimal()
+        }
+      }
+    }
+    else{
+      if(input$value == "Всего одобренных заявок" | input$value == "Всего ипотечных сделок"){
+        if(input$region != "Россия"){
+      dat_f <- dat %>% 
+        filter(Регион == input$region)
+      dat_f %>% 
+        ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
+        geom_line(color = input$plot_col) +
+        theme_minimal() +
+        theme(axis.text.x = element_text(angle = 45))
+        }
+        else{
+          dat %>% 
+            ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
+            geom_line(color = input$plot_col) +
+            theme_minimal() +
+            theme(axis.text.x = element_text(angle = 45))
         }
       }
     }
