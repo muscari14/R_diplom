@@ -57,7 +57,8 @@ ui <- fluidPage(
                              "Динамика" = "dynamic")),
     textInput("plot_col",
               "Цвет:",
-              "#808080")),
+              "#808080"),
+    actionLink("panthone", "PANTONE 13-1023 Peach Fuzz")),
     mainPanel(plotOutput("Plot"))
   )
 )
@@ -132,10 +133,33 @@ server <- function(input, output){
         }
         else{
           dat %>% 
-            ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
-            geom_line(color = input$plot_col) +
+            count(!!sym(input$value), Месяц) %>% 
+            ggplot(aes(x = Месяц, y = !!sym(input$value), size = n, color = !!sym(input$value))) +
+            geom_point() +
+            scale_color_manual(values = c("lightpink", "tomato", "steelblue", "palegreen3", "coral")) +
             theme_minimal() +
             theme(axis.text.x = element_text(angle = 45))
+        }
+      }
+      else{
+        if(input$region != "Россия"){
+          dat_f <- dat %>% 
+            filter(Регион == input$region)
+          dat_f %>% 
+            ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
+            geom_line() +
+            theme_minimal() +
+            theme(axis.text.x = element_text(angle = 45, size = rel(1.5)))
+        }
+        else{
+          dat %>% 
+            group_by(Месяц) %>% 
+            summarise(value = mean(!!sym(input$value))) %>% 
+            ggplot(aes(x = `Месяц`, y = value, group = 1)) +
+            geom_line() +
+            labs(y = input$value) +
+            theme_minimal() +
+            theme(axis.text.x = element_text(angle = 45, size = rel(1.5)))
         }
       }
     }
@@ -152,77 +176,4 @@ server <- function(input, output){
 
 shinyApp(ui = ui, server = server)
 
-    
-    # if(input$value == "Всего одобренных заявок" | input$value == "Всего ипотечных сделок"){
-    #   if(input$mode == "distribution"){
-    #     if(input$region != "Россия"){
-    #     dat_f <- dat %>% 
-    #       filter(Регион == input$region)
-    #     dat_f %>% 
-    #       ggplot(aex(x = !!sym(input$value), fill = !!sym(input$value))) +
-    #       geom_bar()
-    #   }
-    #   else{
-    #     dat %>% 
-    #       ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
-    #       geom_bar()
-    #   }
-    #     if(input$mode == "dynamic"){
-    #       if(input$region != "Россия"){
-    #         dat_f <- dat %>% 
-    #           filter(Регион == input$region)
-    #         dat_f %>% 
-    #           ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
-    #           geom_bar() +
-    #           facet_wrap(~ `Месяц`)
-    #       }
-    #       else{
-    #         dat %>% 
-    #           ggplot(aes(x = !!sym(input$value), fill = !!sym(input$value))) +
-    #           geom_bar() +
-    #           facet_wrap(~ `Месяц`)
-    #       }
-    #     }
-    #   }
-    # }
-    # else{
-    #   if(input$mode == "distribution"){
-    #     if(input$region != "Россия"){
-    #     dat_f <- dat %>% 
-    #       filter(Регион == input$region)
-    #     dat_f %>% 
-    #     ggplot(aes(y = !!sym(input$value))) +
-    #     geom_boxplot(fill = input$plot_col) +
-    #     labs(x = input$region) +
-    #     scale_x_continuous(breaks = NULL)+
-    #     theme_minimal()
-    #   }
-    #   else{
-    #     dat %>% 
-    #       ggplot(aes(y = !!sym(input$value))) +
-    #       geom_boxplot(fill = input$plot_col) +
-    #       labs(x = input$region) +
-    #       scale_x_continuous(breaks = NULL) +
-    #       theme_minimal()
-    #   }
-    # }
-    # else{
-    #   if(input$region != "Россия"){
-    #     dat_f <- dat %>% 
-    #       filter(Регион == input$region)
-    #     dat_f %>% 
-    #       ggplot(aes(x =`Месяц`, y = !!sym(input$value), group = 1)) +
-    #       geom_point() +
-    #       geom_line(color = input$plot_col) +
-    #       theme_minimal()
-    #   }
-    #   else{
-    #     dat %>% 
-    #       group_by(Месяц) %>% 
-    #       summarise(mean = mean(!!sym(input$value))) %>% 
-    #       ggplot(aes(x = `Месяц`, y = mean, group = 1)) +
-    #       geom_point() +
-    #       geom_line(color = input$plot_col) +
-    #       theme_minimal()
-    #   }
-    # }}})}  
+ 

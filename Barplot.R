@@ -41,3 +41,16 @@ dat_f %>%
   scale_color_manual(values = c("lightpink", "tomato", "steelblue", "palegreen3", "coral")) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45))
+
+dat %>%
+  group_by(Месяц) %>% 
+  summarise(mean = mean(`Среднемесячная заработная плата`)) %>% 
+  ggplot(aes(x = Месяц, y =  mean, group = 1)) +
+  geom_line()
+
+dat %>% 
+  group_by(Месяц) %>% 
+  summarise(value = mean(`Среднемесячная заработная плата`)) %>% 
+  ggplot(aes(x = Месяц, y = value, group = 1)) +
+  geom_line()
+  
