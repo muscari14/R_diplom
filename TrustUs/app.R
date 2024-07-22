@@ -57,8 +57,7 @@ ui <- fluidPage(
                              "Динамика" = "dynamic")),
     textInput("plot_col",
               "Цвет:",
-              "#808080"),
-    actionLink("panthone", "PANTONE 13-1023 Peach Fuzz")),
+              "#FFBE98")),
     mainPanel(plotOutput("Plot"))
   )
 )
@@ -127,7 +126,7 @@ server <- function(input, output){
         filter(Регион == input$region)
       dat_f %>% 
         ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
-        geom_line(color = input$plot_col) +
+        geom_line(color = input$plot_col, linewidth = 1.3) +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45))
         }
@@ -147,7 +146,7 @@ server <- function(input, output){
             filter(Регион == input$region)
           dat_f %>% 
             ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
-            geom_line() +
+            geom_line(color = input$plot_col, linewidth = 1.3) +
             theme_minimal() +
             theme(axis.text.x = element_text(angle = 45, size = rel(1.5)))
         }
@@ -156,7 +155,7 @@ server <- function(input, output){
             group_by(Месяц) %>% 
             summarise(value = mean(!!sym(input$value))) %>% 
             ggplot(aes(x = `Месяц`, y = value, group = 1)) +
-            geom_line() +
+            geom_line(color = input$plot_col, linewidth = 1.3) +
             labs(y = input$value) +
             theme_minimal() +
             theme(axis.text.x = element_text(angle = 45, size = rel(1.5)))
