@@ -1,4 +1,5 @@
 library(scales)
+library(tidyverse)
 
 dat %>% 
   count(`Всего одобренных заявок`) %>% 
@@ -53,4 +54,22 @@ dat %>%
   summarise(value = mean(`Среднемесячная заработная плата`)) %>% 
   ggplot(aes(x = Месяц, y = value, group = 1)) +
   geom_line()
-  
+
+
+dat_f %>% 
+  count(`Всего одобренных заявок`) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ggplot(aes(x = `Всего одобренных заявок`, y = prop, fill = `Всего одобренных заявок`)) +
+  geom_col(color = "grey20") +
+  geom_text(aes(label = percent(prop), vjust = -1)) +
+  scale_y_continuous(name = "Доля", labels = percent_format()) +
+  scale_x_discrete(name = "Категория") +
+  theme_minimal() +
+  #theme(axis.title = element_blank()) +
+  scale_fill_manual(values = c("lightpink", "steelblue", "palegreen3", "coral", "wheat")) +
+  labs(y = "Lola")
+
+dat %>% 
+  ggplot(aes(y = `Среднемесячная заработная плата`)) +
+  geom_boxplot() +
+  coord_cartesian(xlim = c(-2, 2))

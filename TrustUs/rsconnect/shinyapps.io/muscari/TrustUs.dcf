@@ -1,0 +1,12 @@
+name: TrustUs
+title: TrustUs
+username: muscari
+account: muscari
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12358948
+bundleId: 8901382
+url: https://muscari.shinyapps.io/TrustUs/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

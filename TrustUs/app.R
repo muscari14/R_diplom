@@ -80,9 +80,13 @@ server <- function(input, output){
             ggplot(aes(x = !!sym(input$value), y = prop, fill = !!sym(input$value))) +
             geom_col(color = "grey20") +
             geom_text(aes(label = percent(prop), vjust = -1)) +
-            scale_y_continuous(labels = percent_format()) +
+            xlab("Категория") +
+            scale_y_continuous(name = "Доля", labels = percent_format()) +
             theme_minimal() +
-            theme(axis.title = element_blank()) +
+            theme(axis.text = element_text(size = rel(1.1)),
+                  axis.title = element_text(size = rel(1.2)),
+                  legend.text = element_text(size = rel(1.1)),
+                  legend.title = element_text(size = rel(1.2))) +
             scale_fill_manual(values = c("lightpink", "steelblue", "palegreen3", "coral", "wheat"))
         }
         else{
@@ -92,9 +96,13 @@ server <- function(input, output){
             ggplot(aes(x = !!sym(input$value), y = prop, fill = !!sym(input$value))) +
             geom_col(color = "grey20") +
             geom_text(aes(label = percent(prop), vjust = -1)) +
-            scale_y_continuous(labels = percent_format()) +
+            xlab("Категория") +
+            scale_y_continuous(name = "Доля", labels = percent_format()) +
             theme_minimal() +
-            theme(axis.title = element_blank()) +
+            theme(axis.text = element_text(size = rel(1.1)),
+                  axis.title = element_text(size = rel(1.2)),
+                  legend.text = element_text(size = rel(1.1)),
+                  legend.title = element_text(size = rel(1.2)))+
             scale_fill_manual(values = c("lightpink", "steelblue", "palegreen3", "coral", "wheat")) 
         }
       }
@@ -104,18 +112,24 @@ server <- function(input, output){
             filter(Регион == input$region)
           dat_f %>% 
             ggplot(aes(y = !!sym(input$value))) +
-            geom_boxplot(fill = input$plot_col) +
+            geom_boxplot(fill = input$plot_col, width = 0.35) +
             labs(x = input$region) +
             scale_x_continuous(breaks = NULL) +
-            theme_minimal()
+            theme_minimal() +
+            theme(axis.title.x = element_text(size = rel(1.3)),
+                  axis.title.y = element_text(size = rel(1.3))) +
+            coord_cartesian(xlim = c(-0.3, 0.3))
         }
         else{
           dat %>% 
             ggplot(aes(y = !!sym(input$value))) +
-            geom_boxplot(fill = input$plot_col) +
+            geom_boxplot(fill = input$plot_col, width = 0.35) +
             labs(x = input$region) +
             scale_x_continuous(breaks = NULL) +
-            theme_minimal()
+            theme_minimal() +
+            theme(axis.title.x = element_text(size = rel(1.3)),
+                  axis.title.y = element_text(size = rel(1.3))) +
+            coord_cartesian(xlim = c(-0.3, 0.3))
         }
       }
     }
@@ -128,7 +142,9 @@ server <- function(input, output){
         ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
         geom_line(color = input$plot_col, linewidth = 1.3) +
         theme_minimal() +
-        theme(axis.text.x = element_text(angle = 45))
+        theme(axis.text.x = element_text(angle = 45, size = rel(1.5)),
+              axis.title.x = element_text(size = rel(1.3)),
+              axis.title.y = element_text(size = rel(1.3)))
         }
         else{
           dat %>% 
@@ -137,7 +153,9 @@ server <- function(input, output){
             geom_point() +
             scale_color_manual(values = c("lightpink", "tomato", "steelblue", "palegreen3", "coral")) +
             theme_minimal() +
-            theme(axis.text.x = element_text(angle = 45))
+            theme(axis.text.x = element_text(angle = 45, size = rel(1.5)),
+                  axis.title.x = element_text(size = rel(1.3)),
+                  axis.title.y = element_text(size = rel(1.3)))
         }
       }
       else{
@@ -148,7 +166,9 @@ server <- function(input, output){
             ggplot(aes(x = `Месяц`, y = !!sym(input$value), group = 1)) +
             geom_line(color = input$plot_col, linewidth = 1.3) +
             theme_minimal() +
-            theme(axis.text.x = element_text(angle = 45, size = rel(1.5)))
+            theme(axis.text.x = element_text(angle = 45, size = rel(1.5)),
+                  axis.title.x = element_text(size = rel(1.3)),
+                  axis.title.y = element_text(size = rel(1.3)))
         }
         else{
           dat %>% 
@@ -158,20 +178,15 @@ server <- function(input, output){
             geom_line(color = input$plot_col, linewidth = 1.3) +
             labs(y = input$value) +
             theme_minimal() +
-            theme(axis.text.x = element_text(angle = 45, size = rel(1.5)))
+            theme(axis.text.x = element_text(angle = 45, size = rel(1.5)),
+                  axis.title.x = element_text(size = rel(1.3)),
+                  axis.title.y = element_text(size = rel(1.3)))
         }
       }
     }
-  }
+  }, height = 380, width = 550, 
   )
 }
-
-
- 
-
-    
-
-
 
 shinyApp(ui = ui, server = server)
 
