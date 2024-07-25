@@ -184,7 +184,7 @@ server <- function(input, output){
         }
       }
     }
-  }, height = 380, width = 550, 
+  }, height = 400, width = 550, 
   )
 }
 

@@ -5,7 +5,7 @@ account: muscari
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 12358948
-bundleId: 8901382
+bundleId: 8905651
 url: https://muscari.shinyapps.io/TrustUs/
 version: 1
 asMultiple: FALSE
