@@ -2,21 +2,33 @@ library(tidyverse)
 library(geojsonio)
 library(leaflet)
 library(RColorBrewer)
+library(psych)
 
 #Препроцессинг данных:
 
+dat <- read.csv("Dat.csv", check.names = FALSE)
+
 rus <- geojson_read("russia.geojson", what = "sp")
 
-pals <- pals %>% 
-  filter(category == "seq") %>% 
-  select(1) %>% 
-  rownames()
+#Модифицируем geojson-файл, чтобы корректно отображалась Чукотка:
 
-pal <- brewer.pal(9, pals[1])
+chukotka <- rus@polygons[[18]]
+for (i in 1:length(chukotka@Polygons)) {
+  polygon_long <- chukotka@Polygons[[i]]@coords[, 1]
+  if (mean(polygon_long) < 0) {
+    polygon_long <- 360 + polygon_long
+  }
+  chukotka@Polygons[[i]]@coords[, 1] <- polygon_long
+}
 
+rus_corrected <- rus
+rus_corrected@polygons[[18]] <- chukotka
 
-setdiff(rus@data$name, dat$Регион)
-setdiff(dat$Регион, rus@data$name)
+geojson_write(rus_corrected, file = "russia_modified.geojson")
+
+#Приводим названия регионов к единому виду:
+
+rus <- geojson_read("russia_modified.geojson", what = "sp")
 
 rus@data$name <- str_replace_all(rus@data$name, c("Кабардино-Балкарская республика" = "Кабардино-Балкарская Республика",
                                  "Бурятия" = "Республика Бурятия",
@@ -33,7 +45,15 @@ rus@data$name <- str_replace_all(rus@data$name, c("Кабардино-Балка
                                  "Ханты-Мансийский автономный округ - Югра" = "Ханты-Мансийский АО - Югра",
                                  "Республика Мордовия" = "Мордовия",
                                  "Ненецкий автономный округ" = "Ямало-Ненецкий АО",
-                                 "Алтай" = "Алтайский край")) 
+                                 "Чукотский автономный округ" = "Чукотский АО",
+                                 "Чеченская республика" = "Чеченская Республика",
+                                 "Еврейская автономная область" = "Еврейская АО",
+                                 "Ингушетия" = "Республика Ингушетия")) 
+
+rus@data$name[rus@data$name == "Алтай"] <- "Республика Алтай"
+
+setdiff(rus@data$name, dat$Регион)
+setdiff(dat$Регион, rus@data$name)
 
 dat_small <- dat %>% 
   select(Регион, `Индекс потребительской активности`, `Доля безналичных платежей`, `Среднемесячная заработная плата`)
@@ -47,12 +67,21 @@ dat_small <- dat_small %>%
 rus@data <- left_join(rus@data, dat_small, join_by(name == `Регион`))
 
 
-rus %>% 
-  leaflet() %>% 
-  addTiles() %>% 
-  addPolygons(stroke = FALSE, fill = pal, label = ~name) %>% 
-  setView(lng = 100, lat = 66, zoom = 2)
-  
-rus@data %>% view()
+pal <- colorBin("YlOrRd", domain = rus@data$`Среднемесячная заработная плата`, bins = 4, pretty = TRUE)
 
-str(rus@data)
+map <- leaflet(rus) %>% 
+  addTiles() %>% 
+  addPolygons(fillColor = ~pal(`Среднемесячная заработная плата`), 
+              weight = 0.8, 
+              opacity = 1, 
+              color = "steelblue", 
+              dashArray = "3", 
+              fillOpacity = 0.7,
+              highlightOptions = highlightOptions(weight = 1, color = "coral", fillOpacity = 0.8, dashArray = "", bringToFront = TRUE)) %>% 
+  addLegend(pal = pal, values = ~`Среднемесячная заработная плата`, opacity = 0.7, title = NULL, position = "bottomright")
+
+map
+
+describe(rus@data$`Среднемесячная заработная плата`)
+
+boxplot(rus@data$`Среднемесячная заработная плата`)
