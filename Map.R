@@ -3,6 +3,7 @@ library(geojsonio)
 library(leaflet)
 library(RColorBrewer)
 library(psych)
+library(htmltools)
 
 #Препроцессинг данных:
 
@@ -52,9 +53,7 @@ rus@data$name <- str_replace_all(rus@data$name, c("Кабардино-Балка
 
 rus@data$name[rus@data$name == "Алтай"] <- "Республика Алтай"
 
-setdiff(rus@data$name, dat$Регион)
-setdiff(dat$Регион, rus@data$name)
-
+#Добавляем социоэкономические показатели:
 dat_small <- dat %>% 
   select(Регион, `Индекс потребительской активности`, `Доля безналичных платежей`, `Среднемесячная заработная плата`)
 
@@ -66,8 +65,14 @@ dat_small <- dat_small %>%
 
 rus@data <- left_join(rus@data, dat_small, join_by(name == `Регион`))
 
-
+#Создаем палитру:
 pal <- colorBin("YlOrRd", domain = rus@data$`Среднемесячная заработная плата`, bins = 4, pretty = TRUE)
+
+#Создаем подписи:
+labels <- paste(
+  "<strong>", rus@data$name, 
+  "</strong><br>Среднемесячная зарплата:", round(rus@data$`Среднемесячная заработная плата`, 2)) %>% 
+  lapply(htmltools::HTML)
 
 map <- leaflet(rus) %>% 
   addTiles() %>% 
@@ -77,11 +82,9 @@ map <- leaflet(rus) %>%
               color = "steelblue", 
               dashArray = "3", 
               fillOpacity = 0.7,
-              highlightOptions = highlightOptions(weight = 1, color = "coral", fillOpacity = 0.8, dashArray = "", bringToFront = TRUE)) %>% 
+              highlightOptions = highlightOptions(weight = 1, color = "coral", fillOpacity = 0.8, dashArray = "", bringToFront = TRUE),
+              label = labels) %>% 
   addLegend(pal = pal, values = ~`Среднемесячная заработная плата`, opacity = 0.7, title = NULL, position = "bottomright")
 
+
 map
-
-describe(rus@data$`Среднемесячная заработная плата`)
-
-boxplot(rus@data$`Среднемесячная заработная плата`)
