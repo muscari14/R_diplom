@@ -65,6 +65,9 @@ dat_small <- dat_small %>%
 
 rus@data <- left_join(rus@data, dat_small, join_by(name == `Регион`))
 
+#С этим файлом далее будем работать:
+geojson_write(rus, file = "geojson_rus_fin.geojson")
+
 #Создаем палитру:
 pal <- colorBin("YlOrRd", domain = rus@data$`Среднемесячная заработная плата`, bins = 4, pretty = TRUE)
 

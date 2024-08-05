@@ -15,28 +15,33 @@ library(RColorBrewer)
 library(psych)
 library(htmltools)
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
+#Загружаем данные:
+rus <- geojson_read("rus_fin.geojson", what = "sp")
 
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
+#Создаем сиписок последовательных палитр из библиотеки RColorBrewer:
+seqpals <- RColorBrewer::brewer.pal.info
+
+seqpals <- seqpals %>% 
+  filter(category == "seq") %>% 
+  row.names()
+
+#Пользовательский интерфейс:
+ui <- fluidPage(
+    titlePanel("Социоэкономические показатели регионов России"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
         # Show a plot of the generated distribution
         mainPanel(
-           leafletOutput("mmap") 
-        )
-    )
-)
+           leafletOutput("mmap"),
+           selectInput("pallette",
+                       "Выберите палитру:", 
+                       choices = seqpals),
+           selectInput("value",
+                       "Выберите показатель:",
+                       choices = c("Индекс потребительской активности", "Доля безналичных платежей", "Среднемесячная заработная плата")))))   
+ 
+
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
