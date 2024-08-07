@@ -15,42 +15,31 @@ library(RColorBrewer)
 library(psych)
 library(htmltools)
 
-#Загружаем данные:
-rus <- geojson_read("rus_fin.geojson", what = "sp")
-
-#Создаем сиписок последовательных палитр из библиотеки RColorBrewer:
-seqpals <- RColorBrewer::brewer.pal.info
-
-seqpals <- seqpals %>% 
+#Палитра
+seqpals <- RColorBrewer::brewer.pal.info %>% 
   filter(category == "seq") %>% 
-  row.names()
+  rownames()
 
-#Пользовательский интерфейс:
+
 ui <- fluidPage(
-    titlePanel("Социоэкономические показатели регионов России"),
+  leafletOutput("rus"),
+  p(),
+  selectInput("pal", "Выберите палитру:", choices = pals),
+  selectInput("value", "Выберите показатель:", choices = c("Индекс потребительской активности", 
+                                                           "Доля безналичных платежей", 
+                                                           "Среднемесячная заработная плата"))
+  
+)
 
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        # Show a plot of the generated distribution
-        mainPanel(
-           leafletOutput("mmap"),
-           selectInput("pallette",
-                       "Выберите палитру:", 
-                       choices = seqpals),
-           selectInput("value",
-                       "Выберите показатель:",
-                       choices = c("Индекс потребительской активности", "Доля безналичных платежей", "Среднемесячная заработная плата")))))   
- 
-
-
-# Define server logic required to draw a histogram
-server <- function(input, output) {
-
-    output$mmap <- renderLeaflet({
-      leaflet(rus) %>% 
-        addTiles()
-    })
+server <- function(input, output, session) {
+  output$rus <- renderLeaflet({
+    leaflet() %>% 
+      addTiles()
+  })
+  
 }
 
-# Run the application 
-shinyApp(ui = ui, server = server)
+shinyApp(ui, server)
+
+
+
