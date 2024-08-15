@@ -13,7 +13,7 @@ colnames(rus@data)[6:8] <- gsub("\\.", " ", colnames(rus@data)[6:8])
 
 #Пользовательский интерфейс
 ui <- fluidPage(
-  leafletOutput("map"),
+  leafletOutput("map", height = "70vh"),
   selectInput("color", "Выберите палитру:", choices = rownames(subset(brewer.pal.info, category == "seq"))),
   selectInput("value", "Выберите показатель:", choices = colnames(rus@data)[6:8])
 )
